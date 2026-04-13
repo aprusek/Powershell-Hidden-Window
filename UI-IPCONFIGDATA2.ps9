@@ -1,0 +1,24 @@
+﻿# Display ALL network interfaces with complete ipconfig data
+Get-NetAdapter | ForEach-Object {
+    $adapter = $_
+    $ipConfig = Get-NetIPConfiguration -InterfaceIndex $adapter.ifIndex -ErrorAction SilentlyContinue
+    $dnsServers = (Get-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue).ServerAddresses -join ', '
+    $ipv4 = Get-NetIPAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue
+    $ipv6 = Get-NetIPAddress -InterfaceIndex $adapter.ifIndex -AddressFamily IPv6 -ErrorAction SilentlyContinue
+    $gateway = ($ipConfig.IPv4DefaultGateway.NextHop -join ', ')
+    $dhcp = Get-NetIPInterface -InterfaceIndex $adapter.ifIndex -AddressFamily IPv4 -ErrorAction SilentlyContinue
+
+    [PSCustomObject]@{
+        'Adapter'      = $adapter.Name
+        'Description'  = $adapter.InterfaceDescription
+        'Status'       = $adapter.Status
+        'MAC'          = $adapter.MacAddress
+        'DHCP'         = if ($dhcp.Dhcp -eq 'Enabled') { 'Yes' } else { 'No' }
+        'IPv4'         = ($ipv4.IPAddress -join ', ')
+        'Prefix'       = ($ipv4.PrefixLength | ForEach-Object { "/$_" }) -join ', '
+        'IPv6'         = ($ipv6.IPAddress | Where-Object { $_ -notlike 'fe80*' } | Select-Object -First 1)
+        'Link-Local'   = ($ipv6.IPAddress | Where-Object { $_ -like 'fe80*' } | Select-Object -First 1)
+        'Gateway'      = $gateway
+        'DNS'          = $dnsServers
+    }
+} | Out-GridView -Wait

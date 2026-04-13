@@ -1,0 +1,34 @@
+# Parse ipconfig /all into a structured table
+$ipconfigOutput = ipconfig /all
+$adapters = @()
+$current = $null
+
+foreach ($line in $ipconfigOutput) {
+    # Detect adapter header lines (end with colon, no leading space)
+    if ($line -match '^[^\s].+:$') {
+        if ($current) { $adapters += $current }
+        $current = [PSCustomObject]@{
+            Adapter     = $line.Trim().TrimEnd(':')
+            IPv4Address = ''
+            SubnetMask  = ''
+            Gateway     = ''
+            DNS         = ''
+            DHCPEnabled = ''
+            MACAddress  = ''
+        }
+    } elseif ($current) {
+        switch -Regex ($line) {
+            'IPv4 Address.+:\s*(.+)'         { $current.IPv4Address = $matches[1].Trim(' (Preferred)') }
+            'Subnet Mask.+:\s*(.+)'          { $current.SubnetMask  = $matches[1].Trim() }
+            'Default Gateway.+:\s*(.+)'      { $current.Gateway     = $matches[1].Trim() }
+            'DNS Servers.+:\s*(.+)'          { $current.DNS         = $matches[1].Trim() }
+            'DHCP Enabled.+:\s*(.+)'         { $current.DHCPEnabled = $matches[1].Trim() }
+            'Physical Address.+:\s*(.+)'     { $current.MACAddress  = $matches[1].Trim() }
+        }
+    }
+}
+if ($current) { $adapters += $current }
+
+# Filter out adapters with no IPv4 address and display
+$adapters | Where-Object { $_.IPv4Address -ne '' } | Out-GridView -Wait
+ #   Format-Table Adapter, IPv4Address, SubnetMask, Gateway, DHCPEnabled, MACAddress -AutoSize -Wrap

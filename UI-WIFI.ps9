@@ -1,0 +1,38 @@
+﻿# Parse netsh wlan output into structured table
+$raw = netsh wlan show networks mode=bssid
+$networks = @()
+$current = $null
+
+foreach ($line in $raw) {
+    if ($line -match '^SSID\s+\d+\s+:\s+(.*)') {
+        if ($current) { $networks += $current }
+        $current = [PSCustomObject]@{
+            SSID         = $matches[1].Trim()
+            NetworkType  = ''
+            Auth         = ''
+            Encryption   = ''
+            BSSID        = ''
+            Signal       = ''
+            RadioType    = ''
+            Channel      = ''
+            Band         = ''
+        }
+    } elseif ($current) {
+        switch -Regex ($line.Trim()) {
+            '^Network type\s+:\s+(.+)'        { $current.NetworkType = $matches[1].Trim() }
+            '^Authentication\s+:\s+(.+)'      { $current.Auth        = $matches[1].Trim() }
+            '^Encryption\s+:\s+(.+)'          { $current.Encryption  = $matches[1].Trim() }
+            '^BSSID \d+\s+:\s+(.+)'           { $current.BSSID       = $matches[1].Trim() }
+            '^Signal\s+:\s+(.+)'              { $current.Signal      = $matches[1].Trim() }
+            '^Radio type\s+:\s+(.+)'          { $current.RadioType   = $matches[1].Trim() }
+            '^Channel\s+:\s+(.+)'             { $current.Channel     = $matches[1].Trim() }
+            '^Band\s+:\s+(.+)'               { $current.Band        = $matches[1].Trim() }
+        }
+    }
+}
+if ($current) { $networks += $current }
+
+# Sort by signal strength descending and display
+$networks |
+    Sort-Object { [int]($_.Signal -replace '%','') } -Descending | Out-GridView -Wait
+    #    Format-Table SSID, Signal, Channel, Band, RadioType, Auth, Encryption, BSSID -AutoSize -Wrap

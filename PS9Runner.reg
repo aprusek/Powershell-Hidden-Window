@@ -1,0 +1,35 @@
+Windows Registry Editor Version 5.00
+
+; =====================================================
+; .ps9 Hidden Association using PS9Runner.vbs
+; Double-click runs silently with PowerShell 7 (no console window)
+; =====================================================
+
+[HKEY_CLASSES_ROOT\.ps9]
+@="PS9Script"
+"PerceivedType"="text"
+
+[HKEY_CLASSES_ROOT\PS9Script]
+@="PowerShell Script (.ps9)"
+
+; Icon (shows PowerShell icon for .ps9 files)
+[HKEY_CLASSES_ROOT\PS9Script\DefaultIcon]
+@="%ProgramFiles%\\PowerShell\\7\\pwsh.exe,0"
+
+; Main double-click action - Hidden using wscript + PS9Runner.vbs
+[HKEY_CLASSES_ROOT\PS9Script\Shell\Open\Command]
+@="wscript.exe //B //Nologo \"D:\\Programs\\AAA_Scripts\\PS9Runner.vbs\" \"%1\""
+
+; Optional context menu entry (also hidden)
+[HKEY_CLASSES_ROOT\PS9Script\Shell\Run with PowerShell]
+@="Run with PowerShell"
+
+[HKEY_CLASSES_ROOT\PS9Script\Shell\Run with PowerShell\Command]
+@="wscript.exe //B //Nologo \"D:\\Programs\\AAA_Scripts\\PS9Runner.vbs\" \"%1\""
+
+; Per-user fallback (helps on some Windows 11 machines)
+[HKEY_CURRENT_USER\Software\Classes\.ps9]
+@="PS9Script"
+
+[HKEY_CURRENT_USER\Software\Classes\PS9Script\Shell\Open\Command]
+@="wscript.exe //B //Nologo \"D:\\Programs\\AAA_Scripts\\PS9Runner.vbs\" \"%1\""
