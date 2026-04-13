@@ -46,6 +46,18 @@ I chose `D:\Programs\AAA_Scripts\`:
 - Double-click triggers `wscript.exe` → `PS9Runner.vbs` → PowerShell 7
 - The script content is read and executed via `Invoke-Expression` (bypasses the `.ps1` extension restriction)
 
+## Main Files
+- PS9Runner.reg - Registery Entries to associate .ps9 with the hidden helper script
+- PS9Runner.vbs - The helper script as suggested options to powershell.exe did not work
+
+## Example Files
+- UI-IPCONFIGDATA.ps9 - Example script that display a Gridview window of Network Configuration
+- UI-IPCONFIGDATA2.ps9 - Another Example script that display a Gridview window of Network Configuration
+- UI-WIFI.ps9 - Example script that display a Gridview window of WIFI SSIDs
+- UI-WifiPassword.ps3 - Example script that display a Gridview window of WIFI Passwords
+
 ## Removal / Uninstall
 
 To be continued...
+
+
